@@ -11,7 +11,6 @@ services:
     runtime: docker
     dockerContext: backend
     dockerfilePath: backend/Dockerfile
-    plan: free
     envVars:
       - key: DB_URL
         fromDatabase:
@@ -33,14 +32,10 @@ services:
     rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist
-    plan: free
     routes:
       - type: rewrite
         source: /*
         destination: /index.html
-    envVars:
-      - key: VITE_API_BASE_URL
-        fromService:
-          type: web
-          name: findit-backend
-          property: host
+      - type: redirect
+        source: /api/*
+        destination: https://findit-backend.onrender.com/api/*
