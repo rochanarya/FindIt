@@ -1,12 +1,11 @@
-services:
-  # 1. PostgreSQL Database Service
-  - type: pg
-    name: findit-db
+databases:
+  - name: findit-db
     databaseName: findit_db
     user: findit_user
     plan: free
 
-  # 2. Spring Boot Backend Web Service
+services:
+  # 1. Spring Boot Backend Web Service
   - type: web
     name: findit-backend
     runtime: docker
@@ -27,7 +26,7 @@ services:
       - key: ADMIN_PASSWORD
         value: Admin@FindIt2026
 
-  # 3. React Frontend Static Site
+  # 2. React Frontend Static Site
   - type: web
     name: findit-frontend
     runtime: static
