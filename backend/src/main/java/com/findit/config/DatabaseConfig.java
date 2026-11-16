@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
 import javax.sql.DataSource;
+import java.net.URI;
 
 @Configuration
 @Slf4j
@@ -43,21 +44,38 @@ public class DatabaseConfig {
             }
             log.info("Using DB_URL datasource");
         } else if (databaseUrl != null && !databaseUrl.isBlank()) {
-            String jdbcUrl = databaseUrl;
-            if (jdbcUrl.startsWith("postgres://")) {
-                jdbcUrl = "jdbc:postgresql://" + jdbcUrl.substring("postgres://".length());
-            } else if (jdbcUrl.startsWith("postgresql://")) {
-                jdbcUrl = "jdbc:postgresql://" + jdbcUrl.substring("postgresql://".length());
-            }
-            config.setJdbcUrl(jdbcUrl);
-            config.setDriverClassName("org.postgresql.Driver");
-            if (configuredUsername != null && !configuredUsername.isBlank() && !configuredUsername.equals("sa")) {
+            try {
+                String cleanUrl = databaseUrl;
+                if (cleanUrl.startsWith("jdbc:")) {
+                    cleanUrl = cleanUrl.substring(5);
+                }
+                URI uri = new URI(cleanUrl);
+                String host = uri.getHost();
+                int port = uri.getPort() == -1 ? 5432 : uri.getPort();
+                String path = uri.getPath();
+                String query = uri.getQuery();
+
+                String jdbcUrl = "jdbc:postgresql://" + host + ":" + port + path + (query != null ? "?" + query : "");
+                config.setJdbcUrl(jdbcUrl);
+                config.setDriverClassName("org.postgresql.Driver");
+
+                if (uri.getUserInfo() != null) {
+                    String[] userParts = uri.getUserInfo().split(":", 2);
+                    config.setUsername(userParts[0]);
+                    if (userParts.length > 1) {
+                        config.setPassword(userParts[1]);
+                    }
+                } else {
+                    config.setUsername(configuredUsername);
+                    config.setPassword(configuredPassword);
+                }
+                log.info("Successfully parsed cloud DATABASE_URL -> {}", jdbcUrl);
+            } catch (Exception e) {
+                log.error("Failed to parse DATABASE_URL, falling back to direct string", e);
+                config.setJdbcUrl(databaseUrl);
                 config.setUsername(configuredUsername);
-            }
-            if (configuredPassword != null && !configuredPassword.isBlank()) {
                 config.setPassword(configuredPassword);
             }
-            log.info("Configured cloud datasource from DATABASE_URL");
         } else {
             config.setJdbcUrl(configuredUrl);
             config.setUsername(configuredUsername);
