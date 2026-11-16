@@ -54,14 +54,10 @@
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
         </dependency>
-        <!-- flyway-database-postgresql only needed when connecting to actual PostgreSQL -->
-        <!-- Commented out to allow H2 dev mode without conflicts -->
-        <!--
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-database-postgresql</artifactId>
         </dependency>
-        -->
 
         <!-- Spring Security & JWT -->
         <dependency>
